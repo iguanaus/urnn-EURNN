@@ -4,6 +4,9 @@ import numpy as np
 from fftconv import cufft, cuifft
 from widget import *
 
+theano.config.compute_test_value = 'off' 
+theano.config.optimizer='None'
+
 def initialize_matrix(n_in, n_out, name, rng, init='rand'):
     if (init=='rand') or (init=='randSmall'):
         bin = np.sqrt(6. / (n_in + n_out))
@@ -988,7 +991,7 @@ def complex_RNN(n_input, n_hidden, n_output, input_type='real', out_every_t=Fals
         return [x, y], parameters, costs
 
 def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,loss_function="CE"):
-
+    print("Capacity: " , capacity)
     x = T.matrix(dtype='int32')
     y = T.matrix(dtype='int32')
     inputs = [x,y]
@@ -1065,8 +1068,8 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,lo
             diag_list_0 = cos_list
             off_list_0 = sin_list
         else:
-            diag_list_0 = cos_list[:,permutedList3]
-            off_list_0 = sin_list[:,permutedList3]
+            diag_list_0 = cos_list#[:,permutedList3]
+            off_list_0 = sin_list#[:,permutedList3]
 
         if capacity ==1:
             diag_list_1 = None
@@ -1104,7 +1107,7 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,lo
             if (capacity==1):
                 state = h_prev
                 #permutedState = h_prev
-                state = state*diag_list_0[0]+state[:,permutedList1]*off_list_0[0]
+                state = state*diag_list_0[0]+state*off_list_0[0]#[:,permutedList1]*off_list_0[0]
             else:
                 state = h_prev
                 #print("Capacity is large: " , capacity)
