@@ -991,43 +991,20 @@ def complex_RNN(n_input, n_hidden, n_output, input_type='real', out_every_t=Fals
         return [x, y], parameters, costs
 
 def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,loss_function="CE"):
-
-    #x = T.matrix(dtype='int32')
-    #y = T.matrix(dtype='int32')
-    #inputs = [x,y]
-    x, y = initialize_data_nodes(loss_function, 'categorical', out_every_t)
-    inputs = [x, y]
+    print("UPDATED EURNN!")
     np.random.seed(1234)
     rng = np.random.RandomState(1234)
 
-    bin = 0.01
+    x, y = initialize_data_nodes(loss_function, input_type, out_every_t)
+    inputs = [x, y]
 
-    V = initialize_matrix(n_input, n_hidden, 'V', rng)
-    #UArray = np.asarray(rng.uniform(low=-bin,
-    # #       high=bin,
-    #        size=(n_input, n_hidden)),
-    #        dtype=theano.config.floatX)
-    UTensor = V#theano.shared(value=UArray,name="U Matrix")
-
-    W = initialize_matrix(n_hidden, n_hidden, 'W', rng)
-    #HArray = np.asarray(rng.uniform(low=-bin,
-    #        high=bin,
-    #        size=(n_hidden, n_hidden)),
-    #        dtype=theano.config.floatX)
-    HTensor = W#theano.shared(value=HArray,name="H Matrix")
-
-
-    out_mat = initialize_matrix(n_hidden, n_output, 'out_mat', rng)
-    #VArray = np.asarray(rng.uniform(low=-bin,
-    #        high=bin,
-    #        size=(n_hidden, n_output)),
-    #        dtype=theano.config.floatX)
-    VTensor = out_mat#theano.shared(value=VArray,name="V Matrix")
-
-    h_0 = theano.shared(np.zeros((1,n_hidden),dtype=theano.config.floatX))
-
-
-    parameters=[UTensor,HTensor,VTensor]
+    h_0 = theano.shared(np.zeros((1, n_hidden), dtype=theano.config.floatX))
+    UTensor = initialize_matrix(n_input, n_hidden, 'V', rng)
+    HTensor = initialize_matrix(n_hidden, n_hidden, 'W', rng)
+    VTensor = initialize_matrix(n_hidden, n_output, 'out_mat', rng)
+    hidden_bias = theano.shared(np.zeros((n_hidden,), dtype=theano.config.floatX))
+    out_bias = theano.shared(np.zeros((n_output,), dtype=theano.config.floatX))
+    parameters = [h_0,UTensor,HTensor,VTensor]
 
     def recurrence(x_t,y_t,h_prev,cost_prev,acc_prev,U,H,V):
         #Cross entropy only cares about the element 
@@ -1046,9 +1023,11 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,lo
 
     h_0_batch = T.tile(h_0,[x.shape[1],1])
 
+    sequences = [x, y]
+
     outputs_info = [h_0_batch, theano.shared(np.float32(0.0)),theano.shared(np.float32(0.0))]
 
-    [hidden_states, cost_steps, acc_steps], updates = theano.scan(fn=recurrence,sequences=inputs,non_sequences=non_sequences,outputs_info=outputs_info)
+    [hidden_states, cost_steps, acc_steps], updates = theano.scan(fn=recurrence,sequences=sequences,non_sequences=non_sequences,outputs_info=outputs_info)
 
     cost = cost_steps.mean()
     accuracy = acc_steps.mean()
