@@ -990,7 +990,68 @@ def complex_RNN(n_input, n_hidden, n_output, input_type='real', out_every_t=Fals
     else:
         return [x, y], parameters, costs
 
-def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,loss_function="CE"):
+def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,loss_function="CE"):
+
+    x = T.matrix(dtype='int32')
+    y = T.matrix(dtype='int32')
+    inputs = [x,y]
+    rng = np.random.RandomState(1234)
+
+    bin = 0.01
+
+    UArray = np.asarray(rng.uniform(low=-bin,
+            high=bin,
+            size=(n_input, n_hidden)),
+            dtype=theano.config.floatX)
+    UTensor = theano.shared(value=UArray,name="U Matrix")
+
+
+    HArray = np.asarray(rng.uniform(low=-bin,
+            high=bin,
+            size=(n_hidden, n_hidden)),
+            dtype=theano.config.floatX)
+    HTensor = theano.shared(value=HArray,name="H Matrix")
+
+
+    VArray = np.asarray(rng.uniform(low=-bin,
+            high=bin,
+            size=(n_hidden, n_output)),
+            dtype=theano.config.floatX)
+    VTensor = theano.shared(value=VArray,name="V Matrix")
+
+    h_0 = theano.shared(np.zeros((1,n_hidden),dtype=theano.config.floatX))
+
+    parameters=[UTensor,HTensor,VTensor]
+
+    def recurrence(x_t,y_t,h_prev,cost_prev,acc_prev,U,H,V):
+        #Cross entropy only cares about the element 
+        data_lin_output = U[x_t] #This is weird for the input, but I guess it is just a one-hot
+        h_t = T.tanh(T.dot(h_prev,H)+data_lin_output)
+
+        lin_output = T.dot(h_t,V)
+        
+        cost_t, acc_t = compute_cost_t(lin_output,y_t)
+
+        return h_t, cost_t, acc_t
+
+    non_sequences = [UTensor,HTensor,VTensor]
+    print("X: " , x)
+    print("H0: " , h_0)
+
+    h_0_batch = T.tile(h_0,[x.shape[1],1])
+
+    outputs_info = [h_0_batch, theano.shared(np.float32(0.0)),theano.shared(np.float32(0.0))]
+
+    [hidden_states, cost_steps, acc_steps], updates = theano.scan(fn=recurrence,sequences=inputs,non_sequences=non_sequences,outputs_info=outputs_info)
+
+    cost = cost_steps.mean()
+    accuracy = acc_steps.mean()
+
+    costs = [cost,accuracy]
+
+    return inputs, parameters, costs
+
+def EURNN2(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,loss_function="CE"):
     print("Capacity: " , capacity)
     x = T.matrix(dtype='int32')
     y = T.matrix(dtype='int32')
