@@ -997,31 +997,35 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,lo
     #inputs = [x,y]
     x, y = initialize_data_nodes(loss_function, 'categorical', out_every_t)
     inputs = [x, y]
+    np.random.seed(1234)
     rng = np.random.RandomState(1234)
 
     bin = 0.01
 
-    UArray = np.asarray(rng.uniform(low=-bin,
-            high=bin,
-            size=(n_input, n_hidden)),
-            dtype=theano.config.floatX)
-    UTensor = theano.shared(value=UArray,name="U Matrix")
+    V = initialize_matrix(n_input, n_hidden, 'V', rng)
+    #UArray = np.asarray(rng.uniform(low=-bin,
+    # #       high=bin,
+    #        size=(n_input, n_hidden)),
+    #        dtype=theano.config.floatX)
+    UTensor = V#theano.shared(value=UArray,name="U Matrix")
+
+    W = initialize_matrix(n_hidden, n_hidden, 'W', rng)
+    #HArray = np.asarray(rng.uniform(low=-bin,
+    #        high=bin,
+    #        size=(n_hidden, n_hidden)),
+    #        dtype=theano.config.floatX)
+    HTensor = W#theano.shared(value=HArray,name="H Matrix")
 
 
-    HArray = np.asarray(rng.uniform(low=-bin,
-            high=bin,
-            size=(n_hidden, n_hidden)),
-            dtype=theano.config.floatX)
-    HTensor = theano.shared(value=HArray,name="H Matrix")
-
-
-    VArray = np.asarray(rng.uniform(low=-bin,
-            high=bin,
-            size=(n_hidden, n_output)),
-            dtype=theano.config.floatX)
-    VTensor = theano.shared(value=VArray,name="V Matrix")
+    out_mat = initialize_matrix(n_hidden, n_output, 'out_mat', rng)
+    #VArray = np.asarray(rng.uniform(low=-bin,
+    #        high=bin,
+    #        size=(n_hidden, n_output)),
+    #        dtype=theano.config.floatX)
+    VTensor = out_mat#theano.shared(value=VArray,name="V Matrix")
 
     h_0 = theano.shared(np.zeros((1,n_hidden),dtype=theano.config.floatX))
+
 
     parameters=[UTensor,HTensor,VTensor]
 
