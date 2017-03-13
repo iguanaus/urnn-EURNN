@@ -6,7 +6,7 @@ learning_rate=0.001
 mkdir -p exp
 
 for t in 100; do
-	for model in EURNN,51,adhoc,1; do IFS=","; set $model
+	for model in RNN,51,adhoc,1; do IFS=","; set $model
         SECONDS=0
         w_impl=$3
         echo "Running memory_problem experiment for N=$2 $1 with time_steps=$t"

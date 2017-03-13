@@ -992,9 +992,11 @@ def complex_RNN(n_input, n_hidden, n_output, input_type='real', out_every_t=Fals
 
 def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,loss_function="CE"):
 
-    x = T.matrix(dtype='int32')
-    y = T.matrix(dtype='int32')
-    inputs = [x,y]
+    #x = T.matrix(dtype='int32')
+    #y = T.matrix(dtype='int32')
+    #inputs = [x,y]
+    x, y = initialize_data_nodes(loss_function, 'categorical', out_every_t)
+    inputs = [x, y]
     rng = np.random.RandomState(1234)
 
     bin = 0.01
@@ -1030,7 +1032,7 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,lo
 
         lin_output = T.dot(h_t,V)
         
-        cost_t, acc_t = compute_cost_t(lin_output,y_t)
+        cost_t, acc_t = compute_cost_t(lin_output,loss_function,y_t)
 
         return h_t, cost_t, acc_t
 
