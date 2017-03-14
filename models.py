@@ -1115,14 +1115,14 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,lo
     h_0 = theano.shared(np.zeros((1,n_hidden),dtype=theano.config.floatX))
 
     out_bias = theano.shared(np.zeros((n_output,), dtype=theano.config.floatX))
-    
+
     if (capacity>1):
-        parameters=[UTensor,HTensor,VTensor,HTensor_2]
+        parameters=[UTensor,HTensor,VTensor,HTensor_2,out_bias]
     else:
-        parameters=[UTensor,HTensor,VTensor]
+        parameters=[UTensor,HTensor,VTensor,out_bias]
     Dim = 16
 
-    def recurrence(x_t,y_t,h_prev,cost_prev,acc_prev,U,W,V,W_2=None):
+    def recurrence(x_t,y_t,h_prev,cost_prev,acc_prev,U,W,V,out_bias,W_2=None):
         #Cross entropy only cares about the element 
         Ux = U[x_t]
         cos_theta = T.cos(W)#.dimshuffle('x',0)
@@ -1203,9 +1203,9 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,lo
         return h_t, cost_t, acc_t
 
     if (capacity>1):
-        non_sequences=[UTensor,HTensor,VTensor,HTensor_2]
+        non_sequences=[UTensor,HTensor,VTensor,out_bias,HTensor_2]
     else:
-        non_sequences = [UTensor,HTensor,VTensor]
+        non_sequences = [UTensor,HTensor,VTensor,out_bias]
 
     h_0_batch = T.tile(h_0,[x.shape[1],1])
 
