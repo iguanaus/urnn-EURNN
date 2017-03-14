@@ -990,7 +990,7 @@ def complex_RNN(n_input, n_hidden, n_output, input_type='real', out_every_t=Fals
     else:
         return [x, y], parameters, costs
 
-def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,loss_function=""):
+def EURNN2(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,loss_function=""):
 
     x = T.matrix(dtype='int32')
     y = T.matrix(dtype='int32')
@@ -1054,7 +1054,7 @@ def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=0,approx=False,lo
 
     return inputs, parameters, costs
 
-def EURNN2(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,loss_function="CE"):
+def EURNN(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,loss_function="CE"):
     print("Capacity: " , capacity)
     x = T.matrix(dtype='int32')
     y = T.matrix(dtype='int32')
@@ -1114,6 +1114,8 @@ def EURNN2(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,l
 
     h_0 = theano.shared(np.zeros((1,n_hidden),dtype=theano.config.floatX))
 
+    out_bias = theano.shared(np.zeros((n_output,), dtype=theano.config.floatX))
+    
     if (capacity>1):
         parameters=[UTensor,HTensor,VTensor,HTensor_2]
     else:
@@ -1194,7 +1196,7 @@ def EURNN2(n_input,n_hidden,n_output,out_every_t=False,capacity=1,approx=False,l
         h_t = T.tanh(state + Ux)
 
 
-        lin_output = T.dot(h_t,V)
+        lin_output = T.dot(h_t,V)+out_bias.dimshuffle('x',0)
 
         cost_t, acc_t = compute_cost_t(lin_output,loss_function,y_t)
 
